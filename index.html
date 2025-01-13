@@ -3,18 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bülten Aboneliği</title>
+    <title>Haber Bülteni</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            background-color: #f4f4f4;
         }
-        .container {
-            width: 100%;
-            max-width: 400px;
-            margin: 50px auto;
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            text-align: center;
+        }
+        main {
+            max-width: 800px;
+            margin: 20px auto;
             background: #fff;
             padding: 20px;
             border-radius: 5px;
@@ -22,55 +27,115 @@
         }
         h1 {
             text-align: center;
+            margin-bottom: 20px;
         }
-        form {
+        .news-section {
+            margin-bottom: 20px;
+        }
+        .news-section h2 {
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 5px;
+        }
+        .news-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        .news-section ul li {
+            margin-bottom: 10px;
+        }
+        .news-section ul li a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .news-section ul li a:hover {
+            text-decoration: underline;
+        }
+        footer {
+            margin-top: 30px;
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        footer form {
             display: flex;
             flex-direction: column;
+            align-items: center;
         }
-        label {
-            margin: 10px 0 5px;
-        }
-        input, select, button {
+        footer input, footer select, footer button {
+            margin: 5px 0;
             padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
             border-radius: 5px;
+            border: 1px solid #ccc;
         }
-        button {
-            background-color: #28a745;
+        footer button {
+            background: #28a745;
             color: white;
-            border: none;
             cursor: pointer;
         }
-        button:hover {
-            background-color: #218838;
+        footer button:hover {
+            background: #218838;
         }
         #responseMessage {
             margin-top: 10px;
-            text-align: center;
+            color: #fff;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Bülten Aboneliği</h1>
+    <header>
+        <h1>Haber Bülteni</h1>
+    </header>
+    <main>
+        <div id="newsContainer">
+            <div class="news-section" id="dailyNews">
+                <h2>Günlük Haberler</h2>
+                <ul></ul>
+            </div>
+            <div class="news-section" id="weeklyNews">
+                <h2>Haftalık Haberler</h2>
+                <ul></ul>
+            </div>
+            <div class="news-section" id="monthlyNews">
+                <h2>Aylık Haberler</h2>
+                <ul></ul>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <h2>Bülten Aboneliği</h2>
         <form id="subscriptionForm">
-            <label for="email">E-posta Adresiniz:</label>
-            <input type="email" id="email" name="email" required>
-
-            <label for="frequency">Sıklık:</label>
-            <select id="frequency" name="frequency">
+            <input type="email" id="email" placeholder="E-posta Adresiniz" required>
+            <select id="frequency">
                 <option value="daily">Günlük</option>
                 <option value="weekly">Haftalık</option>
                 <option value="monthly">Aylık</option>
             </select>
-
             <button type="submit">Abone Ol</button>
         </form>
         <div id="responseMessage"></div>
-    </div>
-
+    </footer>
     <script>
+        // RSS haberlerini yükle
+        async function fetchNews() {
+            const response = await fetch('fetch_news.php');
+            const news = await response.json();
+
+            // Kategorilere göre haberleri doldur
+            const dailyContainer = document.querySelector('#dailyNews ul');
+            const weeklyContainer = document.querySelector('#weeklyNews ul');
+            const monthlyContainer = document.querySelector('#monthlyNews ul');
+
+            dailyContainer.innerHTML = news.daily.map(item => `<li><a href="${item.link}" target="_blank">${item.title}</a></li>`).join('');
+            weeklyContainer.innerHTML = news.weekly.map(item => `<li><a href="${item.link}" target="_blank">${item.title}</a></li>`).join('');
+            monthlyContainer.innerHTML = news.monthly.map(item => `<li><a href="${item.link}" target="_blank">${item.title}</a></li>`).join('');
+        }
+
+        fetchNews();
+
+        // Abonelik formu
         document.getElementById('subscriptionForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -81,7 +146,7 @@
             formData.append('email', email);
             formData.append('frequency', frequency);
 
-            const response = await fetch('process.php', {
+            const response = await fetch('subscribe.php', {
                 method: 'POST',
                 body: formData,
             });
